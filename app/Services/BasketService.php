@@ -13,11 +13,12 @@ class BasketService
     {
         $vouchers = Voucher::whereIn('code', $data['voucher_codes'])->get();
         $productsCounts = array_count_values($data['product_ids']);
-        $productSum = Product::whereIn('id', $data['product_ids'])
-            ->get()
-            ->map(function ($item) use ($productsCounts) {
-                return $item->price * $productsCounts[$item->id];
-            })->sum();
+        $products = Product::whereIn('id', $data['product_ids'])
+            ->get();
+        $productsGroupedByType = $products->groupBy('type');
+        $productSum = $products->map(function ($item) use ($productsCounts) {
+            return $item->price * $productsCounts[$item->id];
+        })->sum();
 
         $usedTypes = [];
         $resultVouchers = [];
@@ -27,51 +28,49 @@ class BasketService
                 $usedTypes[] = $voucher->type;
                 $resultVouchers[] = $voucher->toArray();
 
-                if ($voucher->type === Voucher::TYPE_V) {
-                    $products = Product::whereIn('id', $data['product_ids'])
-                        ->where('type', $voucher->product)
-                        ->get();
-                    foreach ($products as $key => $product) {
-                        $usedForCount = intdiv($productsCounts[$product->id], 2);
-                        if ($usedForCount) {
-                            if ($voucher->sign === '%') {
-                                $voucherSum += $usedForCount * (($product->price / 100) * $voucher->discount);
-                            } else {
-                                $voucherSum += $usedForCount * ($product->price - $voucher->discount);
+                switch ($voucher->type) {
+                    case Voucher::TYPE_V:
+                        $products = $productsGroupedByType[$voucher->product];
+                        foreach ($products as $key => $product) {
+                            $usedForCount = intdiv($productsCounts[$product->id], 2);
+                            if ($usedForCount) {
+                                $voucherSum += $usedForCount * $this->calculateDiscount($product->price, $voucher);
                             }
                         }
-                    }
-                } elseif ($voucher->type === Voucher::TYPE_R) {
-                    $products = Product::whereIn('id', $data['product_ids'])
-                        ->where('type', $voucher->product)
-                        ->get();
-                    foreach ($products as $product) {
-                        if ($voucher->sign === '%') {
-                            $voucherSum += (($product->price / 100) * $voucher->discount);
-                        } else {
-                            $voucherSum += $product->price - $voucher->discount;
+                        break;
+                    case Voucher::TYPE_R:
+                        $products = $productsGroupedByType[$voucher->product];
+                        foreach ($products as $product) {
+                            $voucherSum += $this->calculateDiscount($product->price, $voucher);
                         }
-                    }
-                } elseif ($voucher->type === Voucher::TYPE_S) {
-                    if ($voucher->product < $productSum) {
-                        if ($voucher->sign === '%') {
-                            $voucherSum += (($productSum / 100) * $voucher->discount);
-                        } else {
-                            $voucherSum += $productSum - $voucher->discount;
+                        break;
+                    case Voucher::TYPE_S:
+                        if ($voucher->product < $productSum) {
+                            $voucherSum += $this->calculateDiscount($productSum, $voucher);
                         }
-                    }
                 }
             }
         }
         $total = $productSum - $voucherSum;
         return [
-            'total' => $total < 0 ? 0 : $total,
-            'products' => Product::whereIn('id', $data['product_ids'])->get()->map(
+            'total' => max($total, 0),
+            'products' => $products->map(
                 function ($item) use ($productsCounts) {
                     return [$productsCounts[$item->id] => $item];
                 }
-            )->toArray(),
+            )->
+            toArray(),
             'vouchers' => $resultVouchers
         ];
+    }
+
+    private function calculateDiscount($price, $voucher)
+    {
+        if ($voucher->sign === '%') {
+            $result = (($price / 100) * $voucher->discount);
+        } else {
+            $result = $price - $voucher->discount;
+        }
+        return $result;
     }
 }

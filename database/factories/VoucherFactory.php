@@ -15,10 +15,10 @@ class VoucherFactory extends Factory
     {
         return [
             'code' => Str::random(8),
-            'type' => Voucher::TYPE_V,
-            'discount' => 10,
+            'type' => Voucher::TYPES[rand(0, 2)],
+            'discount' => rand(5, 20),
             'sign' => '%',
-            'product' => Product::TYPE_A
+            'product' => Product::TYPES[rand(0, 2)]
         ];
     }
 }
