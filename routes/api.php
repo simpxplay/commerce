@@ -1,6 +1,8 @@
 <?php
 
-use Illuminate\Http\Request;
+use App\Http\Controllers\BasketController;
+use App\Http\Controllers\ProductController;
+use App\Http\Controllers\VoucherController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -13,7 +15,6 @@ use Illuminate\Support\Facades\Route;
 | is assigned the "api" middleware group. Enjoy building your API!
 |
 */
-
-Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
-    return $request->user();
-});
+Route::post('basket', [BasketController::class, 'calculateBasket']);
+Route::apiResource('products', ProductController::class)->only('index');
+Route::apiResource('vouchers', VoucherController::class)->only('index');
