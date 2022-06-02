@@ -6,11 +6,13 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\BasketRequest;
 use App\Services\BasketService;
+use Illuminate\Http\JsonResponse;
+use Symfony\Component\HttpFoundation\Response;
 
 class BasketController extends Controller
 {
-    public function calculateBasket(BasketRequest $request, BasketService $service): array
+    public function calculateBasket(BasketRequest $request, BasketService $service): JsonResponse
     {
-        return $service->calculate($request->validated());
+        return response()->json($service->calculate($request->validated()), Response::HTTP_OK);
     }
 }

@@ -9,7 +9,7 @@ services:
         ports:
             - "8400:80"
         depends_on:
-            -   app_commerce
+            - app_commerce
         container_name: nginx_commerce
 
     app_commerce:
@@ -17,16 +17,16 @@ services:
             context: .
             dockerfile: _docker/app/Dockerfile
         volumes:
-            -   ./:/var/www
+            - ./:/var/www
         depends_on:
-            -   mysql_commerce
+            - mysql_commerce
         container_name: app_commerce
 
     mysql_commerce:
         image: mysql:5.7
         restart: always
         volumes:
-            -   ./tmp/db:/var/lib/mysql
+            - ./tmp/db:/var/lib/mysql
         environment:
             MYSQL_DATABASE: commerce
             MYSQL_ROOT_PASSWORD: root
