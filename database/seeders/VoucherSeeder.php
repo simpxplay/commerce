@@ -20,7 +20,7 @@ class VoucherSeeder extends Seeder
         Voucher::factory()->count(10)->sequence(
             [
                 'type' => Voucher::TYPE_V,
-                'discount' => 20,
+                'discount' => 10,
                 'sign' => '%',
                 'product' => Product::TYPE_A
             ],
@@ -34,7 +34,7 @@ class VoucherSeeder extends Seeder
                 'type' => Voucher::TYPE_R,
                 'discount' => 5,
                 'sign' => '$',
-                'product' => Product::TYPE_A
+                'product' => Product::TYPE_B
             ],
             [
                 'type' => Voucher::TYPE_R,
@@ -70,7 +70,7 @@ class VoucherSeeder extends Seeder
                 'type' => Voucher::TYPE_S,
                 'discount' => 5,
                 'sign' => '%',
-                'product' => 50
+                'product' => 40
             ],
             [
                 'type' => Voucher::TYPE_S,

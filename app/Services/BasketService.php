@@ -22,7 +22,6 @@ class BasketService
 
         $usedTypes = [];
         $resultVouchers = [];
-        $voucherSum = 0.0;
         foreach ($vouchers as $voucher) {
             if (!in_array($voucher->type, $usedTypes)) {
                 $usedTypes[] = $voucher->type;
@@ -34,26 +33,25 @@ class BasketService
                         foreach ($products as $key => $product) {
                             $usedForCount = intdiv($productsCounts[$product->id], 2);
                             if ($usedForCount) {
-                                $voucherSum += $usedForCount * $this->calculateDiscount($product->price, $voucher);
+                                $productSum -= $usedForCount * $this->calculateDiscount($product->price, $voucher);
                             }
                         }
                         break;
                     case Voucher::TYPE_R:
                         $products = $productsGroupedByType[$voucher->product];
                         foreach ($products as $product) {
-                            $voucherSum += $this->calculateDiscount($product->price, $voucher);
+                            $productSum -= $this->calculateDiscount($product->price, $voucher);
                         }
                         break;
                     case Voucher::TYPE_S:
                         if ($voucher->product < $productSum) {
-                            $voucherSum += $this->calculateDiscount($productSum, $voucher);
+                            $productSum -= $this->calculateDiscount($productSum, $voucher);
                         }
                 }
             }
         }
-        $total = $productSum - $voucherSum;
         return [
-            'total' => max($total, 0),
+            'total' => max($productSum, 0),
             'products' => $products->map(
                 function ($item) use ($productsCounts) {
                     return [$productsCounts[$item->id] => $item];
@@ -69,7 +67,7 @@ class BasketService
         if ($voucher->sign === '%') {
             $result = (($price / 100) * $voucher->discount);
         } else {
-            $result = $price - $voucher->discount;
+            $result = $voucher->discount;
         }
         return $result;
     }
