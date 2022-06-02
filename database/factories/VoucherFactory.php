@@ -15,10 +15,10 @@ class VoucherFactory extends Factory
     {
         return [
             'code' => Str::random(8),
-            'type' => Voucher::TYPES[rand(0, 2)],
-            'discount' => rand(5, 20),
+            'type' => $this->faker->randomElement(Voucher::TYPES),
+            'discount' => $this->faker->numberBetween(5,20),
             'sign' => '%',
-            'product' => Product::TYPES[rand(0, 2)]
+            'product' => $this->faker->randomElement(Product::TYPES)
         ];
     }
 }
