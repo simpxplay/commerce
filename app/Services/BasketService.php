@@ -13,10 +13,10 @@ class BasketService
     {
         $vouchers = Voucher::whereIn('code', $data['voucher_codes'])->get()->unique('type');
         $productsCounts = array_count_values($data['product_ids']);
-        $products = Product::whereIn('id', $data['product_ids'])
+        $productList = Product::whereIn('id', $data['product_ids'])
             ->get();
-        $productsGroupedByType = $products->groupBy('type');
-        $productSum = $products->map(function ($item) use ($productsCounts) {
+        $productsGroupedByType = $productList->groupBy('type');
+        $productSum = $productList->map(function ($item) use ($productsCounts) {
             return $item->price * $productsCounts[$item->id];
         })->sum();
 
@@ -45,7 +45,7 @@ class BasketService
         }
         return [
             'total' => max($productSum, 0),
-            'products' => $products->map(
+            'products' => $productList->map(
                 function ($item) use ($productsCounts) {
                     return [$productsCounts[$item->id] => $item];
                 }
